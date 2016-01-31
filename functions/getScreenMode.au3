@@ -1,8 +1,8 @@
 ; Window need to get active
 func getScreenMode()
    AutoItSetOption ("PixelCoordMode", 0 )
-   if(WinActive("BlueStacks App Player","")) Then
-	  $handle = WinGetHandle("BlueStacks App Player","")
+   if(WinActive($bsWinName,"")) Then
+	  $handle = WinGetHandle($bsWinName,"")
 	  $pixel1 = PixelGetColor(38,590,$handle)
 
 	  if($pixel1 == 0xBC7C19) Then	; mode village basique

@@ -22,6 +22,7 @@ HotKeySet("{F10}","funcTest")
 ; *************
 global $timeNoIdle = 60		; time between action to not be idle ( in seconds )
 global $WinTitle = "DenBot Clash Of Clan V0.1"
+global $bsWinName = "BlueStacks App Player"
 
 ; *********
 ; variables
@@ -42,7 +43,7 @@ global $guiShowClicSpot = GUICtrlCreateButton("Show Clic spots", 325,50,100,20)
 
 #endregion
 GUISetState(@SW_SHOW, $mainWinHandle)
-changeBSResolution(860, 720)
+;changeBSResolution(860, 720)
 ;createOverlayWindow("BlueStacks App Player")
 
 GUISetState()
@@ -92,7 +93,8 @@ func verbose($text)
 endfunc
 
 func checkBlueStacks()
-   local $winBS = WinExists("BlueStacks App Player","")
+   Opt("WinTextMatchMode", 2)
+   local $winBS = WinExists($bsWinName,"")
    if($blueStacksIsLaunch <> $winBS) then
 	  $blueStacksIsLaunch = $winBS
 	  if($winBS == 1) Then
@@ -113,7 +115,7 @@ func checkwin()
 		 $idleTime = TimerDiff($timeCounter)
 		 if($idleTime > ($timeNoIdle*1000)) Then
 			$timeCounter = TimerInit()
-			ControlSend("BlueStacks App Player","",0,"{DOWN}",0)
+			ControlSend($bsWinName,"",0,"{DOWN}",0)
 			;verbose("Preventing idle")
 		 EndIf
 	  EndIf

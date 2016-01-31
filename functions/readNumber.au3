@@ -4,7 +4,7 @@
 #include <SendMessage.au3>
 
 func readNumber($numberField)
-   $handle = WinGetHandle("BlueStacks App Player","")
+   $handle = WinGetHandle($bsWinName,"")
    $bitmap =  _CaptureWindow($handle);_WinCapture($handle,500,500)
   _ScreenCapture_SaveImage("Image.bmp", $bitmap, false)
    ;_ScreenCapture_CaptureWnd("GDIPlus_Image.jpg", $handle)

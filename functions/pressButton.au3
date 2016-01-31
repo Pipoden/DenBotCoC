@@ -34,7 +34,7 @@ EndFunc
 func pressButton($buttonName)
    for $i=0 To $buttonDefCur Step 1
 	  if($buttonName == $buttonDef[$i][0]) Then
-		 ControlClick ( "BlueStacks App Player","",0, "left" , 1 , $buttonDef[$i][1] , $buttonDef[$i][2] )
+		 ControlClick ($bsWinName,"",0, "left" , 1 , $buttonDef[$i][1] , $buttonDef[$i][2] )
 		 Return
 	  EndIf
    Next
