@@ -12,12 +12,32 @@
 
 ; tableau contenant les characters a reconnaitre
 ; les couleurs sont codés sur 8 valeurs ( valeur du pixel rouge, divisé par 8)
-; de hauteur 10px, et de largeur 7px
-;global OCRCharDef[200][70]
-;global OCRCharDefIndex = 0
+; de hauteur 10px, et de largeur 6px
+global $OCRCharDef[200][2]
+global $OCRCharDefIndex = 0
+
+global $OCRCharWidth = 4
+global $OCRCharHeight = 14
+
 
 func loadOCRCharDef()
-   ; TODO
+   local $readIni = IniReadSection("images\OCRDef.ini", "OCRCharMoney")
+   If Not @error Then
+	  For $i = 1 To $readIni[0][0]
+		 if($readIni[$i][0] == "width") Then
+			$OCRCharWidth = Number($readIni[$i][1])
+			ContinueLoop
+		 EndIf
+		 if($readIni[$i][0] == "height") Then
+			$OCRCharHeight = Number($readIni[$i][1])
+			ContinueLoop
+		 EndIf
+		 $OCRCharDef[$OCRCharDefIndex][0] = $readIni[$i][0]
+		 $OCRCharDef[$OCRCharDefIndex][1] = $readIni[$i][1]
+		 $OCRCharDefIndex += 1
+	  Next
+   EndIf
+   ToolTip("loaded " & $OCRCharDefIndex & " elements")
 EndFunc
 
 
@@ -37,120 +57,95 @@ func updateInfos()
    _ScreenCapture_Capture("infoScreen.png",$winX,$winY,$winX+$winW, $winY+$winH,false)
 
 
-
-
 EndFunc
 
 func generateOCRChar()
-      _GDIPlus_Startup()
-   local $hBitmap = _GDIPlus_BitmapCreateFromFile("images/coc8.png")
-   $currentChar = ""
-   for $k=0 to 9
-	  for $l=0 to 6
-		 $color = _GDIPlus_BitmapGetPixel ($hBitmap, $l, $k)
-		 $colorBlue = BitAND($color,0x0000FF)
-		 $color8 = hex(floor($colorBlue / 8), 1)	; 8 shades color
-		 $currentChar &= $color8
+   $text = ""
+   for $i=0 to 9
+	  _GDIPlus_Startup()
+	  local $hBitmap = _GDIPlus_BitmapCreateFromFile("images/coc_"&$i&".png")
+	  $currentChar = ""
+	  for $k=0 to ($OCRCharHeight - 1)
+		 for $l=0 to ($OCRCharWidth - 1)
+			$color = _GDIPlus_BitmapGetPixel ($hBitmap, $l, $k)
+			$colorBlue = BitAND($color,0x0000FF)
+			$color8 = hex(floor($colorBlue / 16), 1)	; 16 shades color
+			$currentChar &= $color8
+			;ToolTip( hex($color,6) & " > " & hex($colorBlue,6) & " > " & $color8 & " > " & $currentChar)
+			;sleep(500)
+		 Next
 	  Next
+	  $text = $text & $i & " = " & $currentChar & @CRLF
+	  ToolTip($currentChar)
+	  _GDIPlus_Shutdown()
    Next
-   ToolTip($currentChar)
-   ClipPut($currentChar)
-   _GDIPlus_Shutdown()
+   ClipPut($text)
 EndFunc
 
 
 
-func imageNumberSearch($number, $x, $y, $w, $h)
+func imageNumberSearch($number, $x, $y, $w, $h, $errorMargin = 50)
    ; cherche l'image d'une chiffre dans le rectangle defini
    ; renvoie un tableau de coords avec tout les emplacements trouvés
    ; TODO
+   $OCRCharDefIndex = 0
+   loadOCRCharDef()
    _GDIPlus_Startup()
-    WinActivate($bluestacksHandle)
+   WinActivate($bsWinName)
+   sleep(1000)
+   $posWin = WinGetPos ($bsWinName)
+   _ScreenCapture_Capture("infoScreen.png",$posWin[0],$posWin[1],$posWin[0]+$posWin[2], $posWin[1]+$posWin[3],false)
+   sleep(1000)
+
 
    $OCRResult = ""
-   ;image source
    local $hBitmap = _GDIPlus_BitmapCreateFromFile("infoScreen.png")
 
    ;$hImage1 = _GDIPlus_BitmapCreateFromHBITMAP($hBitmap)
 
-   if ( 0 == 1) Then
+   if ( 1 == 1) Then
 	  ; image cible
-	  $hBitmap2 = _ScreenCapture_Capture("", 0, 0, $w+6, $h+9)
+	  $hBitmap2 = _ScreenCapture_Capture("", 0, 0, $w+($OCRCharWidth - 1), $h+($OCRCharHeight - 1))
 	  $hImage2 = _GDIPlus_BitmapCreateFromHBITMAP($hBitmap2)
 	  $hGraphics = _GDIPlus_ImageGetGraphicsContext($hImage2)
 	  _GDIPlus_GraphicsDrawImage($hGraphics, $hBitmap, 10, 0)
 	  ;_GDIPlus_GraphicsDrawRect($hGraphics, 10, 10, 20, 20)
-	  _GDIPlus_GraphicsDrawImageRectRect ( $hGraphics, $hBitmap, $x, $y, $w+6, $h+9, 0, 0, $w+6, $h+9 )
+	  _GDIPlus_GraphicsDrawImageRectRect ( $hGraphics, $hBitmap, $x, $y, $w+($OCRCharWidth - 1), $h+($OCRCharHeight - 1), 0, 0, $w+($OCRCharWidth - 1), $h+($OCRCharHeight - 1) )
 	  _GDIPlus_ImageSaveToFile( $hImage2, "test.png" )
-	  _GDIPlus_Shutdown()
-	  return
+	  ;_GDIPlus_Shutdown()
+	  ;return
    EndIf
 
    for $i=0 to ($h-1)
 	  for $j=0 to ($w-1)
 		 $currentChar = ""
-		 for $k=0 to 9
-			for $l=0 to 6
+		 for $k=0 to ($OCRCharHeight - 1)
+			for $l=0 to ($OCRCharWidth - 1)
 			   $color = _GDIPlus_BitmapGetPixel ($hBitmap, $x+$j+$l, $y+$i+$k)
 			   $colorBlue = BitAND($color,0x0000FF)
-			   $color8 = hex(floor($colorBlue / 8), 1)	; 8 shades color
+			   $color8 = hex(floor($colorBlue / 16), 1)	; 8 shades color
 			   $currentChar &= $color8
 			Next
 		 Next
 		 ; comparaison avec le tableau de char
-		 #cs
-		 local $delta = 0
-		 local $ref = "1BFFFEC1DFFFFF4FFFFFFFFF8FFFFF91FFFFF91FFFFFEDFFFFFFFFFF8877FFF0001FFF"
-		 for $k=1 to 70
-			$char = stringmid($currentChar,$k,1)
-			$refChar = stringmid($ref,$k,1)
-			$deltaChar = abs(Number("0x"&$char) - Number("0x"&$refChar,1))
-			;ToolTip(""&$deltaChar & " = " & Number(Dec($char,1)) & " - " & Number(Dec($refChar,1)))
-			;sleep(100)
-			if($deltaChar > $delta) Then
-			   $delta = $deltaChar
+		 for $k = 0 to ($OCRCharDefIndex - 1)
+			$delta = 0
+			local $ref = $OCRCharDef[$k][1]
+			for $l=1 to ( $OCRCharWidth * $OCRCharHeight )
+			   $char = stringmid($currentChar,$l,1)
+			   $refChar = stringmid($ref,$l,1)
+			   $deltaChar = abs(Number("0x"&$char) - Number("0x"&$refChar,1))
+			   $delta += $deltaChar
+			Next
+			if($delta < $errorMargin) Then
+			  ; ToolTip("delta : " & $delta & " --> " & $OCRCharDef[$k][0] & " error: " & $delta)
+			   ;sleep(1000)
+			   $OCRResult = $OCRResult & $OCRCharDef[$k][0]
 			EndIf
 		 Next
-
-		 if($delta < 8) Then
-			ToolTip("delta : " & $delta)
-			sleep(100)
-		 EndIf
-		 #ce
-
-
-		 if( $currentChar == "1BFFFEC1DFFFFF4FFFFFFFFF8FFFFF91FFFFF91FFFFFEDFFFFFFFFFF8877FFF0001FFF" ) Then
-			;ToolTip("Found 4")
-			$OCRResult &= "4"
-			;ClipPut($currentChar)
-			;sleep(1000)
-		 EndIf
-		 if( $currentChar == "28ACCCAFFFFFFFFFFFFFFFFBC7FFFF400EFFF230DFFF271DFFF020CFFF207EFFFFFFFF" ) Then
-			;ToolTip("Found 0")
-			;ClipPut($currentChar)
-			$OCRResult &= "0"
-			;sleep(1000)
-		 EndIf
-		 if( $currentChar == "AEFFFFFFFFFFFFFFF8210FFF6000FFF91B2FFFFFFF49CFFFF0005FFF15D7FFFFFFFFFF" ) Then
-			$OCRResult &= "5"
-		 EndIf
-		 if( $currentChar == "AEFFFFFFFFFFFFFFF8210FFF6000FFF91B2FFFFFFF49CFFFF0005FFF15D7FFFFFFFFFF" ) Then
-			$OCRResult &= "6"
-		 EndIf
-		 if( $currentChar == "DFFFFFBFFFFFFF99C8FFF0009FFF6A9EFFD64FFFFB68D1FFF2000CFF15B5FFFFFFFFFF" ) Then
-			$OCRResult &= "3"
-		 EndIf
-		 if( $currentChar == "FFFFFFFFFFEFFFFFC1EFFFF70EFFFFFFFF6FFFFFFEFFDBEFFFF10FFFFF514FFFFFFFFF" ) Then
-			$OCRResult &= "8"
-		 EndIf
-		 ; 6 = AEFFFFFFFFFFFFFFF8210FFF6000FFF91B2FFFFFFF49CFFFF0005FFF15D7FFFFFFFFFF
-		 ; 3 = DFFFFFBFFFFFFF99C8FFF0009FFF6A9EFFD64FFFFB68D1FFF2000CFF15B5FFFFFFFFFF
-		 ; 8 = FFFFFFFFFFEFFFFFC1EFFFF70EFFFFFFFF6FFFFFFEFFDBEFFFF10FFFFF514FFFFFFFFF
-
-
 	  Next
    Next
-   ToolTip("Found : " & $OCRResult)
+   ToolTip("Elixir : " & $OCRResult)
    _GDIPlus_Shutdown()
 
 

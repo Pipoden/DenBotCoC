@@ -39,7 +39,8 @@ global $mainWinHandle = GUICreate($WinTitle,800,600)
 global $guiVerbose = GUICtrlCreateEdit("",5,25,300,500,0x800);
 global $guiAntiIdle = GUICtrlCreateCheckbox("Anti Idle", 325,25,100,20)
 global $guiBlueStacksOn = GUICtrlCreateLabel("BlueStacks not detected.",450,25)
-global $guiShowClicSpot = GUICtrlCreateButton("Show Clic spots", 325,50,100,20)
+;global $guiShowClicSpot = GUICtrlCreateButton("Show Clic spots", 325,50,100,20)
+global $guiTestOCR = GUICtrlCreateButton("Test OCR", 325,75,100,20)
 
 #endregion
 GUISetState(@SW_SHOW, $mainWinHandle)
@@ -56,12 +57,14 @@ While 1
 	$msg = GUIGetMsg(1)
 	Select
 	  ; fermeture de la fenetre
-	  Case $msg[0] = $GUI_EVENT_CLOSE
+	  Case $msg[0] == $GUI_EVENT_CLOSE
 		 if($msg[1] == $mainWinHandle) then
 			ExitLoop
 		 Else
 			GUISetState(@SW_HIDE,$msg[1])
 		 endif
+	  Case $msg[0] == $guiTestOCR
+		 testOCR()
 	  EndSelect
 	  checkwin()
 	  Sleep(50)
@@ -71,12 +74,25 @@ WEnd
 ; *****************************************
 ; *********    functions        ***********
 ; *****************************************
+func testOCR()
+   ToolTip("test OCR !")
+  ; loadOCRCharDef()
+   imageNumberSearch("", 713, 49+51, 102, 1); +51
+   ;sleep(2000)
+   ;Exit
+
+
+
+EndFunc
+
 func funcTest()
+   ;loadOCRCharDef()
+   ;createOverlayWindow($bsWinName)
    ;ControlSend("BlueStacks App Player","",0,"{DOWN}",0)
    ;updateInfos()
-
-   imageNumberSearch("", 700, 19, 96, 44)
    ;generateOCRChar()
+   ;imageNumberSearch("", 700, 19, 96, 44)
+  ; generateOCRChar()
   ; oolTip(Number("0xFF"))
 
    ;$coords = getButtonCoords("exit")
